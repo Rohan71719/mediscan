@@ -97,9 +97,9 @@ def duplicate_report(df):
 
     # worst five cross-split pairs (smallest distance)
     worst = cross.sort_values("dist").head(5) if len(cross) else pairs.sort_values("dist").head(5)
-        if len(worst) == 0:
-            print("No near-duplicate pairs found; skipping worst-5 figure.")
-            return
+    if len(worst) == 0:
+        print("No near-duplicate pairs found; skipping worst-5 figure.")
+        return
     fig, ax = plt.subplots(len(worst), 2, figsize=(6, 3 * len(worst)))
     ax = np.atleast_2d(ax)
     for r, (_, p) in enumerate(worst.iterrows()):
