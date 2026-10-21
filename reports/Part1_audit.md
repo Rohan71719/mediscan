@@ -14,6 +14,17 @@ All numbers below come from scripts in this repo (script and output file named i
 **Brightness and contrast.** Mean brightness is the same (122.8 vs 122.6). PNEUMONIA images vary more in brightness across images (SD 19.9 vs 13.5) and have slightly lower contrast (55.4 vs 61.3).
 
 **What this implies.** The two classes differ in acquisition geometry (image size and aspect), which has nothing to do with lungs. A network can therefore reach a good score by learning "small and wide means pneumonia". Such a model would fail at a camp whose equipment produces different image sizes. Tasks 4 and 8 test this directly.
+<p align="center">
+  <img src="../figures/fig01_pixel_stats_by_class.png" alt="Pixel stats by class" width="70%">
+  <br>
+  <em>Figure 1: Pixel stats by class.</em>
+</p>
+<p align="center">
+  <img src="../figures/fig02_counts.png" alt="counts" width="50%">
+  <br>
+  <em>Figure 2: Counts.</em>
+</p>
+
 
 ## 2. Duplicates and leakage
 *Script: `audit.py`. Outputs: `outputs/exact_duplicates.csv`, `near_duplicate_pairs.csv`; figure `fig03`.*
