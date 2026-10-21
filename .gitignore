@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Large files (don't push these; cached arrays go in a Kaggle Dataset instead)
+*.npy
+*.npz
+*.pth
+*.pt
+*.onnx
+
+# Raw data (never commit images)
+data/
+*.jpeg
+*.jpg
+*.png
+!figures/*.png
+
+# OS and editor
+.DS_Store
+.vscode/
