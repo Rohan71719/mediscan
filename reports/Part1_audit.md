@@ -30,7 +30,11 @@ All numbers below come from scripts in this repo (script and output file named i
 | Near-duplicate pairs with conflicting labels | 40 [verified: TODO] |
 | Patient IDs present in both train and test | [TODO after check] |
 
-[Insert fig03: the five closest train/test pairs.]
+<p align="center">
+  <img src="../figures/fig03_worst5_pairs.png" alt="Five closest train/test pairs" width="40%">
+  <br>
+  <em>Figure 3: The five closest train/test pairs.</em>
+</p>
 
 **Interpretation.** [Write after the checks: say how many of the shared patients are real, what share of test images belong to patients seen in training, and why that makes the test score optimistic. Say plainly if some pHash matches are false positives, and give the distance below which the conflicts look like true duplicates.] The 98.4% reported by the previous engineer was measured on a test set that [is / may be] not independent of the training set, so it cannot be trusted as an estimate of performance on new children.
 
