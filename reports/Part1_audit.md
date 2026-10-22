@@ -92,7 +92,7 @@ similarity links form chains (A~B, B~C...). A group cannot be split, so this mad
 balance uneven (test set 0.81 pneumonia). We tightened the grouping threshold to 2 bits and
 linked only images with the same label. The largest group is now 31 images and the class
 balance is even across train, validation and test. No model performance was used in any of
-these choices.
+these choices.Patient IDs used for grouping were parsed from filenames without the bacteria/virus tag or the NORMAL2 prefix, so some different children share an ID. This makes groups larger than necessary, which can only reduce leakage across splits.
 
 | Split | NORMAL | PNEUMONIA | Total | Pneumonia fraction |
 |---|---|---|---|---|
