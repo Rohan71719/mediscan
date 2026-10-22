@@ -5,7 +5,7 @@ from sklearn.model_selection import StratifiedGroupKFold
 from src.utils import OUT, get_logger, set_seed
 
 log = get_logger("split")
-NEAR_THR = 5
+NEAR_THR = 2
 SEED = 42
 
 def clopper_pearson(k, n, alpha=0.05):
@@ -31,7 +31,10 @@ def build_groups(df):
     H = np.array([[int(b) for b in format(int(h, 16), "064b")] for h in df.phash], dtype=np.float32)
     ham = H.shape[1] - (H @ H.T + (1 - H) @ (1 - H).T)
     np.fill_diagonal(ham, 99)
-    for i, j in np.argwhere(np.triu(ham <= NEAR_THR, k=1)): union(i, j)
+    lab = df.label.values
+    for i, j in np.argwhere(np.triu(ham <= NEAR_THR, k=1)):
+        if lab[i] == lab[j]:
+            union(i, j)
     return np.array([find(i) for i in range(len(df))])
 
 if __name__ == "__main__":
