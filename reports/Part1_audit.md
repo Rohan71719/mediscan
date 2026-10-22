@@ -253,6 +253,103 @@ alone give high scores on this dataset, so a high score here does not prove that
 learned pneumonia.
 
 
-## 7. ArogyaNet: [TODO; hypotheses go in reports/hypotheses.md BEFORE ablations]
-## 8. Two-branch experiment: [TODO]
+## 7. ArogyaNet
+*Scripts: `src/models.py`, `arch_table.py`, `run_variants.py`. Outputs: `outputs/arch_table.txt`,
+`arogya_*_runs.csv`, `arogya_*_history.csv`. Hypotheses committed before any result:
+`reports/hypotheses.md`.*
+
+**Design.** A 300,641-parameter network trained from scratch (no pretrained weights) on 224×224
+greyscale input. Design decisions: (1) residual connections around each block, (2) squeeze-and-
+excitation (SE) channel attention in each block, (3) depthwise-separable convolutions, (4) global
+average pooling instead of flatten + dense. Decisions 1 and 2 are ablated.
+
+| Stage | Output shape | Parameters |
+|---|---|---|
+| Stem: conv 3×3, stride 2, BN, ReLU | 24×112×112 | 264 |
+| Stage 1: 2 × DS-block, 32 ch | 32×56×56 | 4,472 |
+| Stage 2: 2 × DS-block, 64 ch | 64×28×28 | 13,888 |
+| Stage 3: 3 × DS-block, 128 ch | 128×14×14 | 78,752 |
+| Stage 4: 2 × DS-block, 256 ch | 256×7×7 | 203,008 |
+| Global average pool, dropout 0.2, linear | 1 | 257 |
+| **Total** | | **300,641** (1.2 MB, float32) |
+
+DS-block = depthwise 3×3 → pointwise 1×1 → SE → (+ skip) → ReLU. The per-layer table is in
+`outputs/arch_table.txt`. 
+
+**Hypotheses (written before the results, `reports/hypotheses.md`).** Residual connections:
+removing them lowers balanced accuracy by about 1 point and makes training less stable. SE blocks:
+removing them has a smaller effect (under 1 point), possibly inside the seed noise.
+
+**Training.** AdamW, lr 2e-3, weight decay 1e-4, cosine schedule, batch size 64, up to 30 epochs,
+early stopping on validation loss (patience 8), mild augmentation (rotation ±10°, zoom ±10%,
+brightness and contrast ±10%; no flips). Seeds 0, 1, 2. Same settings for every variant. Not tuned.
+
+**Results (validation set, mean ± SD over 3 seeds).**
+
+| Variant | Params | Balanced acc. | Specificity | Recall | ROC-AUC | PR-AUC |
+|---|---|---|---|---|---|---|
+| Full ArogyaNet | 300,641 | 0.954 ± 0.004 | 0.928 ± 0.005 | 0.980 ± 0.005 | 0.9919 ± 0.0009 | 0.9969 ± 0.0004 |
+| No residual connections | 255,905 | 0.954 ± 0.007 | 0.928 ± 0.007 | 0.981 ± 0.009 | 0.9920 ± 0.0006 | 0.9969 ± 0.0003 |
+| No SE blocks | 204,049 | 0.948 ± 0.005 | 0.919 ± 0.009 | 0.977 ± 0.002 | 0.9914 ± 0.0010 | 0.9967 ± 0.0004 |
+| ResNet18, ImageNet (Section 6) | ~11.2 M | 0.963 ± 0.003 | 0.940 ± 0.011 | 0.986 ± 0.007 | 0.9958 ± 0.0006 | 0.9984 ± 0.0003 |
+
+**Ablation 1: residual connections. Hypothesis not supported.** Removing them changes balanced
+accuracy by +0.0002 (full 0.9542, without 0.9544), far inside the seed spread (SD 0.004 to 0.007),
+and ROC-AUC is identical. In a network this shallow (9 blocks) with batch normalisation,
+gradients evidently reach every layer without skips, so the connections add nothing measurable.
+
+**Ablation 2: SE blocks. Inconclusive.** Removing them lowers balanced accuracy by 0.006
+(0.9542 to 0.9479), in the predicted direction and with a size under the 1 point we predicted, but
+comparable to the spread across seeds, and in one of three seeds the no-SE model scored higher. With
+three seeds this cannot be separated from noise. Both ablations also change the parameter count
+(−44,736 and −96,592), so they are not pure tests of the component.
+
+**Comparison.** ArogyaNet is about 0.9 points below fine-tuned ResNet18 in balanced accuracy
+(0.954 vs 0.963) with 37 times fewer parameters, and clearly above the HOG baseline (0.917). Its
+1.2 MB size fits the 25 MB update channel; ResNet18's weights (about 45 MB) do not. In three runs
+the best epoch was the last of 30, so the networks were still improving; the schedule is not tuned
+(Part 2). As in Section 6, the validation split was used for early stopping, so numbers are slightly
+optimistic, and Section 4 shows non-lung cues alone give high scores on this dataset.
+
+
+
+## 8. The two-branch experiment
+*Script: `run_variants.py --variants meta`. Outputs: `outputs/arogya_meta_224_aug_runs.csv`,
+`arogya_meta_224_aug_history.csv`.*
+
+**Design.** A second version of ArogyaNet takes the image through the convolutional branch and
+three handcrafted numbers through a small dense branch (3 → 16 → 16, ReLU): the log of the original
+image area, the aspect ratio and the mean intensity, standardised with training-set statistics only.
+The 16-dimensional output is concatenated with the 256-dimensional pooled image features before the
+classifier (+352 parameters, 300,993 in total). Training settings are identical to Section 7.
+Because images are resized to a square, the image-only network does not see the original size or
+shape directly; this branch gives them back.
+
+**Results (validation set, mean ± SD over 3 seeds).**
+
+| Model | Balanced acc. | Specificity | Recall | ROC-AUC | PR-AUC |
+|---|---|---|---|---|---|
+| Image-only ArogyaNet | 0.954 ± 0.004 | 0.928 ± 0.005 | 0.980 ± 0.005 | 0.9919 ± 0.0009 | 0.9969 ± 0.0004 |
+| Two-branch | 0.953 ± 0.007 | 0.927 ± 0.010 | 0.980 ± 0.004 | 0.9926 ± 0.0006 | 0.9973 ± 0.0002 |
+| Metadata only, logistic regression (Section 4) | 0.778 | 0.661 | 0.894 | 0.905 | 0.961 |
+
+**Did the metadata branch help?** No. Balanced accuracy differs by −0.001 and ROC-AUC by +0.0007;
+both are within the seed-to-seed spread, and the sign of the difference changes between seeds.
+
+**Connection to Section 4.** The three numbers alone separate the classes well above chance (balanced
+accuracy 0.778), so they carry information that has nothing to do with lungs. Yet adding them to the
+CNN gains nothing, so either the image already holds that information (framing, borders, texture) or
+it adds little next to a model that scores 0.99 AUC. This does not show that the network ignores
+shortcuts: the lung-masked model in Section 4 reaches balanced accuracy 0.859 from non-lung regions,
+and a network can use such cues without a metadata branch. Had the branch helped, it would have
+meant the model exploits properties of this hospital's archive (image size, framing, brightness),
+which describe the scanner and file export, not the child, and would not carry over to a camp with
+different equipment; area and aspect ratio would also depend on how the camp's software saves
+images. Whether the model has learned pneumonia rather than hospital artefacts is tested on the
+external hospital in Part 2. **We use the image-only model**: the branch gives no benefit and adds
+a dependency on file properties.
+
+**Caveats.** Three seeds on one split; early stopping used the validation split.
+
+
 ## 9. Resolution and augmentation ablations: [TODO]
