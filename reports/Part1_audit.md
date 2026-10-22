@@ -99,6 +99,16 @@ set in `split.py`.
 - The locked test set gives one honest final number; the 5 folds give a mean ± SD for
   Part 2 and show how stable the result is.
 
+  **Preprocessing and caching.** *Script: `cache_data.py`. Output: `outputs/cache/` (`X96.npy`,
+`X224.npy`, `y.npy`, `meta.csv`).* All 5,824 pooled images were converted to greyscale and
+resized to 96×96 and 224×224 pixels (JPEG decoded at reduced size with PIL, then bilinear
+resize; aspect ratio is not preserved) and stored as uint8 arrays in the row order of
+`split.csv`. The original height, width, aspect ratio, area and mean intensity are kept in
+`meta.csv`, because resizing to a square removes the size and shape differences found in
+Section 1; the two-branch model (task 8) and the shortcut test (task 4) use them. All
+experiments read these arrays, fit on the train split and are evaluated on the validation
+split; the test split is not used until the final evaluation.
+
 ## 4. Shortcut hunt: [TODO after shortcut.py]
 ## 5. Baselines: [TODO after baselines.py]
 ## 6. Transfer baseline: [TODO; prediction goes in reports/predictions.md BEFORE results]
