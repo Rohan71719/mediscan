@@ -34,10 +34,11 @@ All numbers below come from scripts in this repo (script and output file named i
 **Results.**
 | Check | Count |
 |---|---|
-| Exact duplicate files (identical bytes) | 62 |
+| Files that belong to an exact-duplicate set (identical bytes) | 62 (32 redundant copies) |
 | Near-duplicate pairs, all | 265 |
 | ...within the same split | 238 |
 | ...between train and test | 26 |
+| ...between val and another split | 1 |
 | Near-duplicate pairs with conflicting labels | 40 [verified: TODO] |
 | Patient IDs present in both train and test | [TODO after check] |
 
@@ -50,17 +51,53 @@ All numbers below come from scripts in this repo (script and output file named i
 **Interpretation.** [Write after the checks: say how many of the shared patients are real, what share of test images belong to patients seen in training, and why that makes the test score optimistic. Say plainly if some pHash matches are false positives, and give the distance below which the conflicts look like true duplicates.] The 98.4% reported by the previous engineer was measured on a test set that [is / may be] not independent of the training set, so it cannot be trusted as an estimate of performance on new children.
 
 ## 3. The validation set
-*Script: `split.py`. Outputs: `outputs/val16_ci.csv`, `split.csv`, `split_summary.csv`.*
+*Script: `split.py`. Outputs: `outputs/val16_ci.csv`, `split.csv`, `split_summary.csv`, `split.md5`.*
 
-**Why 16 images is useless.** A model scoring 16/16 has an observed accuracy of 100%, but the 95% Clopper-Pearson interval is [0.794, 1.000]. The true accuracy could be as low as 79%, so the validation set cannot detect overfitting or compare models.
+**Why 16 images is useless.** A model scoring 16/16 has an observed accuracy of 100%, but the
+95% Clopper-Pearson interval is [0.794, 1.000]. The true accuracy could be as low as 79%, so a
+validation set of this size cannot detect overfitting or tell two models apart.
 
-**Replacement design.** All images are pooled, exact duplicates removed, and images are grouped by patient and near-duplicate cluster so no group crosses a split. A stratified grouped split gives: locked test (about 15%, not touched until final evaluation), validation (about 15%) and training (about 70%). A 5-fold stratified grouped assignment on the non-test pool is also stored for Part 2.
+**Replacement design.** The three original folders were pooled (5,856 images). The 32 exact
+duplicate files were removed, leaving 5,824 images. Images were then grouped so that no group
+crosses a split: images with the same patient ID, and images whose perceptual hashes differ by
+at most 2 bits and share a label, are placed in the same group (2,773 groups). A stratified
+grouped split then produced a locked test set (about 15%, not touched until the final
+evaluation), a validation set (about 15%) and a training set (about 70%). A 5-fold stratified
+grouped assignment on the non-test pool (train + val) is also stored for Part 2. The script
+asserts that no group or patient appears in more than one of train, val and test.
 
-**Why a locked test plus CV, not either alone.**
-- *k-fold alone* gives no untouched final estimate (the folds are used for choices), and is expensive for deep networks.
-- *A single split alone* gives a validation score that is noisy and tells you nothing about its own uncertainty.
+**A grouping problem we found and fixed.** A first attempt linked images with a hash distance
+of up to 5 (the audit threshold). This chained 188 images from 105 different patients (154
+NORMAL, 34 PNEUMONIA) into a single group, because chest X-rays resemble each other and
+similarity links form chains (A~B, B~C...). A group cannot be split, so this made the class
+balance uneven (test set 0.81 pneumonia). We tightened the grouping threshold to 2 bits and
+linked only images with the same label. The largest group is now 31 images and the class
+balance is even across train, validation and test. No model performance was used in any of
+these choices.
 
-[Insert the split table from `split_summary.csv`: counts and pneumonia fraction per split, and the group-size check.]
+| Split | NORMAL | PNEUMONIA | Total | Pneumonia fraction |
+|---|---|---|---|---|
+| Train | 1,114 | 3,006 | 4,120 | 0.730 |
+| Validation | 227 | 625 | 852 | 0.734 |
+| Test (locked) | 238 | 614 | 852 | 0.721 |
+
+Split table: `outputs/split_summary.csv`. Frozen split file hash (MD5):
+`d7a8298d0b456ed277a60be0d6ca3934`. Split seed: 42 (test), 43 (validation), 44 (CV folds),
+set in `split.py`.
+
+| Fold (train + val pool) | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| NORMAL | 253 | 260 | 288 | 275 | 265 |
+| PNEUMONIA | 768 | 717 | 675 | 739 | 732 |
+
+**Why a locked test plus cross-validation, and not either alone.**
+- *k-fold alone* leaves no untouched final estimate, because every image is used in some
+  fold while choices (thresholds, hyperparameters) are being made. It is also five times as
+  expensive for deep networks.
+- *A single split alone* gives one validation score with no estimate of its own spread, so
+  it cannot say whether a difference between two models is real.
+- The locked test set gives one honest final number; the 5 folds give a mean ± SD for
+  Part 2 and show how stable the result is.
 
 ## 4. Shortcut hunt: [TODO after shortcut.py]
 ## 5. Baselines: [TODO after baselines.py]
