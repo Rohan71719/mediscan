@@ -128,8 +128,79 @@ Section 1; the two-branch model (task 8) and the shortcut test (task 4) use them
 experiments read these arrays, fit on the train split and are evaluated on the validation
 split; the test split is not used until the final evaluation.
 
-## 4. Shortcut hunt: [TODO after shortcut.py]
-## 5. Baselines: [TODO after baselines.py]
+## 4. Shortcut hunt: 
+*Script: `shortcut.py`. Output: `outputs/shortcut_results.csv`.*
+
+**Method.** Three deliberately crippled models were trained on the training split (4,120 images)
+and evaluated on the validation split (852 images: 625 PNEUMONIA, 227 NORMAL). Each is a
+standardised logistic regression with threshold 0.5:
+1. the image downsampled to 16×16 pixels (256 features);
+2. the image with the central region blanked out (pixels 16 to 80 of a 96×96 image set to zero),
+   leaving only the border, using a 32×32 block-averaged version;
+3. three handcrafted numbers only (aspect ratio, image area, mean intensity), with no pixels.
+
+**Results (validation set, seed 0).**
+
+| Model | Accuracy | Balanced acc. | Recall | Specificity | ROC-AUC | PR-AUC |
+|---|---|---|---|---|---|---|
+| Majority class (always PNEUMONIA) | 0.734 | 0.500 | 1.000 | 0.000 | 0.500 | 0.734 |
+| 16×16 downsample | 0.950 | 0.925 | 0.978 | 0.872 | 0.980 | 0.991 |
+| Lungs masked (border only) | 0.903 | 0.859 | 0.952 | 0.767 | 0.961 | 0.985 |
+| Metadata only (aspect, area, mean) | 0.832 | 0.778 | 0.894 | 0.661 | 0.905 | 0.961 |
+
+**What it means.** All three crippled models beat chance by a wide margin (balanced accuracy 0.78
+to 0.93 against 0.50). Two results are direct evidence of a shortcut:
+- *Metadata only.* Three numbers that contain no lung appearance at all give ROC-AUC 0.905. Image
+  size and shape differ by class (Section 1: area 2.3× larger for NORMAL, aspect ratio 1.25 vs
+  1.51), so a classifier can separate the classes without looking at the lungs.
+- *Lungs masked.* With the central lung region removed, balanced accuracy is still 0.859, so
+  information outside the lungs (borders, shoulders, positioning, markers) separates the classes.
+
+The 16×16 result (balanced accuracy 0.925) shows how little detail is needed. We do not count it
+as proof of a shortcut by itself, because coarse opacity is a genuine pneumonia sign that
+survives heavy downsampling.
+
+**Consequence.** The dataset contains information that is not lung appearance, and a full network
+can use it as well. High accuracy on this single-hospital dataset therefore does not show that a
+model has learned pneumonia, and a camp whose equipment produces different image sizes or framing
+could break it. Section 8 tests whether giving the network the metadata helps, and Part 2 tests
+a different hospital.
+
+**Limits.** One seed and one split. With 227 NORMAL validation images, a specificity estimate has
+a 95% interval of roughly ±4 to 5 percentage points, so small differences between the models
+above (for example between 0.872 and 0.767) should be read with that in mind.
+
+
+## 5. Baselines: 
+*Script: `baselines.py`. Output: `outputs/baselines.csv`.*
+
+**Method.** (a) Majority class: predict PNEUMONIA for every image. (b) HOG features (96×96
+greyscale input, 9 orientations, 8×8-pixel cells, 2×2 blocks; 4,356 features), standardised, then
+logistic regression, trained on the training split and evaluated on the validation split at
+threshold 0.5.
+
+**Results (validation set, seed 0).**
+
+| Model | Accuracy | Balanced acc. | Precision | Recall | Specificity | F1 | PR-AUC |
+|---|---|---|---|---|---|---|---|
+| Majority class | 0.734 | 0.500 | 0.734 | 1.000 | 0.000 | 0.846 | 0.734 |
+| HOG + logistic regression | 0.942 | 0.917 | 0.951 | 0.971 | 0.863* | 0.961 | 0.994 |
+
+*Specificity for HOG is computed as 2 × balanced accuracy − recall; the value in
+`outputs/baselines.csv` is the reference.
+
+**What it means.** A classical pipeline with no deep learning reaches 94.2% accuracy and a PR-AUC
+of 0.994. This is the bar a deep model has to clear. It also puts the previous engineer's 98.4%
+in context: it is only about four points above a handcrafted-feature baseline, on a single
+hospital's data where Section 4 shows non-lung cues are enough to score well.
+
+**How to read these numbers.** The validation set is 73% pneumonia, so accuracy, precision, F1 and
+PR-AUC are flattering; the majority-class row alone scores 0.734 accuracy and F1 0.846.
+Balanced accuracy and specificity are the honest columns: the HOG model misses about 3% of sick
+children but still wrongly flags about 14% of healthy ones. Results come from one seed and one
+split.
+
+
 ## 6. Transfer baseline: [TODO; prediction goes in reports/predictions.md BEFORE results]
 ## 7. ArogyaNet: [TODO; hypotheses go in reports/hypotheses.md BEFORE ablations]
 ## 8. Two-branch experiment: [TODO]
