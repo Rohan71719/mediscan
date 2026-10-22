@@ -201,7 +201,58 @@ children but still wrongly flags about 14% of healthy ones. Results come from on
 split.
 
 
-## 6. Transfer baseline: [TODO; prediction goes in reports/predictions.md BEFORE results]
+## 6. Transfer baseline:
+*Script: `transfer.py` (uses `src/data.py`, `src/train.py`). Outputs: `outputs/transfer_runs.csv`,
+`transfer_summary.csv`, `transfer_history.csv`. Prediction written before the run:
+`reports/predictions.md`.*
+
+**Setup.** ResNet18 with ImageNet weights, fully fine-tuned; the greyscale image is replicated to
+three channels and normalised with ImageNet statistics; 224×224 input; AdamW (lr 3e-4, weight decay
+1e-4), cosine schedule, batch size 64, up to 12 epochs, no augmentation, early stopping on
+validation loss (patience 4). Seeds 0, 1, 2. Trained on the training split, evaluated on the
+validation split at threshold 0.5.
+
+**Prediction (committed before running).** Early and middle layers (edges, textures) should
+transfer; colour sensitivity and object-level late layers should not. Expected ROC-AUC 0.98 to 0.99,
+balanced accuracy 0.92 to 0.95, seed SD about 1 point.
+
+**Results (validation set, mean ± SD over 3 seeds).**
+
+| Metric | ResNet18 (ImageNet) | HOG + LR (Section 5) |
+|---|---|---|
+| Accuracy | 0.974 ± 0.002 | 0.942 |
+| Balanced accuracy | 0.963 ± 0.003 | 0.917 |
+| Precision | 0.978 ± 0.004 | 0.951 |
+| Recall | 0.986 ± 0.007 | 0.971 |
+| Specificity | 0.940 ± 0.011 | 0.863 |
+| F1 | 0.982 ± 0.002 | 0.961 |
+| ROC-AUC | 0.9958 ± 0.0006 | n/a |
+| PR-AUC | 0.9984 ± 0.0003 | 0.994 |
+
+Per seed (false positives / false negatives out of 227 NORMAL / 625 PNEUMONIA): seed 0: 16 / 4,
+seed 1: 14 / 10, seed 2: 11 / 12. Best epoch (0-indexed): 4, 4, 3.
+
+**Did the numbers agree with the prediction?** Partly. The direction agreed: the pretrained network
+beats the HOG baseline, and generic early-layer features evidently transfer to radiographs despite
+the greyscale input. The size of the gain did not: balanced accuracy (0.963) and ROC-AUC (0.996)
+were above the predicted ranges, and the seed spread (0.003) was smaller than the predicted 0.01.
+The prediction was too cautious. The largest gain over HOG is in specificity (0.86 to 0.94), i.e.
+fewer healthy children flagged.
+
+**Observations.** Validation AUC is already 0.993 to 0.996 after the first epoch, so pretrained
+features separate the classes almost immediately. Training loss falls to about 0.0005 while
+validation loss stops improving after epoch 3 to 4, so the network overfits quickly. Validation
+loss is also erratic from epoch to epoch while AUC is stable, which means the ranking is good but
+the predicted probabilities are poorly calibrated; this matters for the threshold choice in Part 2.
+
+**Caveats.** The validation split was used for early stopping, so these numbers are slightly
+optimistic; the test split has not been used. Seeds vary initialisation and shuffling only, on one
+fixed split, so the SD understates the true uncertainty (with 227 NORMAL validation images, a
+specificity estimate has a 95% interval of about ±3 points). Section 4 shows that non-lung cues
+alone give high scores on this dataset, so a high score here does not prove that the network has
+learned pneumonia.
+
+
 ## 7. ArogyaNet: [TODO; hypotheses go in reports/hypotheses.md BEFORE ablations]
 ## 8. Two-branch experiment: [TODO]
 ## 9. Resolution and augmentation ablations: [TODO]
