@@ -5,6 +5,15 @@ from PIL import Image
 from tqdm import tqdm
 from src.utils import OUT, find_primary_root, get_logger
 
+from concurrent.futures import ThreadPoolExecutor
+import os
+
+def load(p):
+    im = Image.open(p)
+    im.draft("L", (448, 448))
+    im = im.convert("L")
+    return [np.asarray(im.resize((s, s), Image.BILINEAR, reducing_gap=2.0), dtype=np.uint8) for s in SIZES]
+
 log = get_logger("cache")
 SIZES = [96, 224]
 
@@ -24,12 +33,10 @@ if __name__ == "__main__":
 
     cache = OUT / "cache"; cache.mkdir(exist_ok=True, parents=True)
     arrays = {s: np.zeros((len(df), s, s), dtype=np.uint8) for s in SIZES}
-    for i, p in enumerate(tqdm(paths)):
-        im = Image.open(p)
-        im.draft("L", (448, 448))          # JPEG decodes at reduced size: much faster
-        im = im.convert("L")
-        for s in SIZES:
-            arrays[s][i] = np.asarray(im.resize((s, s), Image.BILINEAR, reducing_gap=2.0), dtype=np.uint8)
+    with ThreadPoolExecutor(max_workers=16) as ex:   # threads hide slow disk reads
+        for i, out in enumerate(tqdm(ex.map(load, paths), total=len(paths))):
+            for s, arr in zip(SIZES, out):
+                arrays[s][i] = arr
 
     for s in SIZES:
         np.save(cache / f"X{s}.npy", arrays[s])
