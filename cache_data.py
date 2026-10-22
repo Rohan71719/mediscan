@@ -1,6 +1,7 @@
 import argparse, glob
 from pathlib import Path
-import numpy as np, pandas as pd, cv2
+import numpy as np, pandas as pd
+from PIL import Image
 from tqdm import tqdm
 from src.utils import OUT, find_primary_root, get_logger
 
@@ -24,9 +25,11 @@ if __name__ == "__main__":
     cache = OUT / "cache"; cache.mkdir(exist_ok=True, parents=True)
     arrays = {s: np.zeros((len(df), s, s), dtype=np.uint8) for s in SIZES}
     for i, p in enumerate(tqdm(paths)):
-        g = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
+        im = Image.open(p)
+        im.draft("L", (448, 448))          # JPEG decodes at reduced size: much faster
+        im = im.convert("L")
         for s in SIZES:
-            arrays[s][i] = cv2.resize(g, (s, s), interpolation=cv2.INTER_AREA)
+            arrays[s][i] = np.asarray(im.resize((s, s), Image.BILINEAR, reducing_gap=2.0), dtype=np.uint8)
 
     for s in SIZES:
         np.save(cache / f"X{s}.npy", arrays[s])
