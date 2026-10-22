@@ -27,20 +27,29 @@ All numbers below come from scripts in this repo (script and output file named i
 
 
 ## 2. Duplicates and leakage
-*Script: `audit.py`. Outputs: `outputs/exact_duplicates.csv`, `near_duplicate_pairs.csv`; figure `fig03`.*
+*Scripts: `audit.py`, `leakage_check.py`. Outputs: `outputs/exact_duplicates.csv`,
+`near_duplicate_pairs.csv`, `leakage_check.csv`; figure `fig03`.*
 
-**Method.** Perceptual hash (pHash, 64 bits) on greyscale images; pairs with Hamming distance <= 5 are near-duplicates. Patient identity is parsed from the filename.
+**Method.** Perceptual hash (pHash, 64 bits) on greyscale images; pairs with Hamming distance
+<= 5 are near-duplicates. Patient identity was parsed from filenames. A first parse (person
+number only) merged different children, because `personN_bacteria_*` and `personN_virus_*`
+are numbered separately, and the NORMAL series `IM-XXXX` (train) and `NORMAL2-IM-XXXX` (test)
+reuse the same numbers. It reported 264 shared IDs, which inspection showed to be false. The
+strict ID used for the leakage check keeps the bacteria/virus tag and the NORMAL2 prefix.
 
 **Results.**
 | Check | Count |
 |---|---|
-| Files that belong to an exact-duplicate set (identical bytes) | 62 (32 redundant copies) |
-| Near-duplicate pairs, all | 265 |
+| Files in exact-duplicate sets (identical bytes) | 62 in 30 sets (32 redundant copies) |
+| ...sets spanning more than one split | 0 |
+| Near-duplicate pairs (distance <= 5), all | 265 |
 | ...within the same split | 238 |
-| ...between train and test | 26 |
+| ...between train and test | 26 (1 at distance 2, 25 at distance 4) |
 | ...between val and another split | 1 |
-| Near-duplicate pairs with conflicting labels | 40 [verified: TODO] |
-| Patient IDs present in both train and test | [TODO after check] |
+| Near-duplicate pairs with conflicting labels | 40 (all at distance 4; none at distance <= 2) |
+| Pair distances (all 265) | 0: 34, 2: 16, 4: 215 |
+| Strict patient IDs present in both train and test | 0 (0 of 624 test images) |
+
 
 <p align="center">
   <img src="../figures/fig03_worst5_pairs.png" alt="Five closest train/test pairs" width="40%">
@@ -48,7 +57,17 @@ All numbers below come from scripts in this repo (script and output file named i
   <em>Figure 3: The five closest train/test pairs.</em>
 </p>
 
-**Interpretation.** [Write after the checks: say how many of the shared patients are real, what share of test images belong to patients seen in training, and why that makes the test score optimistic. Say plainly if some pHash matches are false positives, and give the distance below which the conflicts look like true duplicates.] The 98.4% reported by the previous engineer was measured on a test set that [is / may be] not independent of the training set, so it cannot be trusted as an estimate of performance on new children.
+
+**Interpretation.** We found no evidence that the previous engineer's test set leaked from the
+training set: no exact duplicate and no strict patient ID crosses train and test, and only 26
+of 265 near-duplicate pairs do, almost all at distance 4, where look-alike chest X-rays are
+common. All 40 label-conflicting pairs are at distance 4 [and the closest four are visibly
+different X-rays], so we treat them as hash false positives rather than label noise. Patient
+identity is inferred from filenames only, so hidden overlap cannot be excluded. The 98.4% is
+therefore not explained by simple leakage, and the remaining explanations (a class mix in
+the test set that differs from training, a single hospital and age group, and the size and shape
+differences between the classes in Section 1) are examined in Sections 4 and 8.
+
 
 ## 3. The validation set
 *Script: `split.py`. Outputs: `outputs/val16_ci.csv`, `split.csv`, `split_summary.csv`, `split.md5`.*
