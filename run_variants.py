@@ -18,13 +18,17 @@ if __name__ == "__main__":
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--lr", type=float, default=2e-3)
     ap.add_argument("--no_aug", action="store_true")
+    ap.add_argument("--pos_weight", type=float, default=None)
+    ap.add_argument("--save_models", action="store_true")
+
+            
     a = ap.parse_args()
     data = Data(a.size); tr, va = data.idx["train"], data.idx["val"]
     yv = data.y[torch.as_tensor(va, device=data.device)].cpu().numpy()
     aug = None if a.no_aug else make_augment()
     (OUT / "preds").mkdir(exist_ok=True)
     for v in a.variants:
-        tag = f"{v}_{a.size}_{'noaug' if a.no_aug else 'aug'}"
+        tag = (f"{v}_{a.size}_{'noaug' if a.no_aug else 'aug'}"+ (f"_pw{a.pos_weight:g}" if a.pos_weight else "") + ("_saved" if a.save_models else ""))
         rows, hists = [], []
         for seed in [0, 1, 2]:
             set_seed(seed)
