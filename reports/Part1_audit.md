@@ -352,4 +352,52 @@ a dependency on file properties.
 **Caveats.** Three seeds on one split; early stopping used the validation split.
 
 
-## 9. Resolution and augmentation ablations: [TODO]
+## 9. Two ablations: input resolution and augmentation
+*Script: `run_variants.py --variants full --size 96` and `--no_aug`. Outputs:
+`outputs/arogya_full_96_aug_*.csv`, `arogya_full_224_noaug_*.csv`. The 224 + augmentation
+reference is the full model of Section 7.*
+
+**Setup.** Full ArogyaNet, three seeds, all other settings identical to Section 7. Resolution: 96×96
+vs 224×224 (both with augmentation). Augmentation: none vs a policy of rotation ±10°, zoom ±10%,
+brightness and contrast jitter ±10% (both at 224×224). No other ablations were run.
+
+**Results (validation set, mean ± SD over 3 seeds).**
+
+| Setting | Balanced acc. | Specificity | Recall | ROC-AUC | PR-AUC | Best epochs |
+|---|---|---|---|---|---|---|
+| 224, augmentation (reference) | 0.954 ± 0.004 | 0.928 ± 0.005 | 0.980 ± 0.005 | 0.9919 ± 0.0009 | 0.9969 ± 0.0004 | 18, 24, 29 |
+| 96, augmentation | 0.945 ± 0.004 | 0.918 ± 0.007 | 0.972 ± 0.005 | 0.9900 ± 0.0030 | 0.9962 ± 0.0013 | 6, 8, 27 |
+| 224, no augmentation | 0.926 ± 0.019 | 0.897 ± 0.053 | 0.954 ± 0.015 | 0.9814 ± 0.0036 | 0.9924 ± 0.0019 | 1, 3, 1 |
+
+**Resolution.** Reducing the input from 224 to 96 lowers balanced accuracy by 0.009 (lower in all
+three seeds) and ROC-AUC by 0.002 (mixed sign across seeds, within the spread). Ranking quality is
+therefore similar, and the difference appears mainly at the fixed 0.5 threshold. Pneumonia is
+visible as coarse opacity, which survives heavy downsampling (consistent with the 16×16 result in
+Section 4). The cost of the 96×96 input is about 0.18 times that of 224×224 in pixels, so it is a
+fallback if inference is too slow on the camp laptop (latency is measured in Part 2).
+
+**Augmentation.** Removing augmentation lowers balanced accuracy by 0.029 and ROC-AUC by 0.011; all
+three no-augmentation runs are below all three augmented runs on both metrics. Training is also less
+stable (balanced-accuracy SD 0.019 vs 0.004). The best epoch is 1 to 3 in every no-augmentation run,
+i.e. the network memorises the training set within a few epochs. Augmentation is the more
+consequential of the two choices. The policy is a bundle, so we cannot attribute the gain to rotation,
+zoom or brightness and contrast individually.
+
+**The medically wrong augmentation: horizontal flip.** Flipping a chest X-ray left to right is a
+routine augmentation for natural images, but it is wrong here (we did not use it). The heart sits on
+the left of the body; a mirrored film shows it on the right, which is the rare condition
+dextrocardia, an anatomy that does not occur in the children this tool will see and that the label
+was never meant to describe. Laterality also carries diagnostic meaning: which lung is affected, a
+left lower-lobe consolidation hidden behind the heart, the stomach bubble under the left
+hemidiaphragm, and the L/R marker, which is mirrored into unreadable text. After a flip the image no
+longer matches the clinical reading that produced its label. (For a bare pneumonia-present label, a
+flip does not change whether pneumonia is present, so the harm is that it teaches the network
+anatomy and laterality cues that are false; for any side- or lobe-specific label it would corrupt the
+label itself.) A vertical flip is worse: it puts the diaphragm and stomach bubble at the top, an
+anatomically impossible image. Our policy therefore uses only small rotations, zoom and brightness
+and contrast jitter.
+
+**Choice for the final model.** 224×224 with augmentation, because it scores best on validation
+(a selection made without touching the test split). The validation split was used for early stopping
+and for this choice, so the numbers are slightly optimistic. Section 4 still applies: a good
+validation score does not show that the network has learned pneumonia rather than hospital cues.
