@@ -397,6 +397,12 @@ label itself.) A vertical flip is worse: it puts the diaphragm and stomach bubbl
 anatomically impossible image. Our policy therefore uses only small rotations, zoom and brightness
 and contrast jitter.
 
+<p align="center">
+  <img src="../figures/fig04_arogyanet.png" alt="Five closest train/test pairs" width="80%">
+  <br>
+  <em>Figure 4: ArogyaNet.</em>
+</p>
+
 **Choice for the final model.** 224×224 with augmentation, because it scores best on validation
 (a selection made without touching the test split). The validation split was used for early stopping
 and for this choice, so the numbers are slightly optimistic. Section 4 still applies: a good
