@@ -13,8 +13,11 @@ def predict(model, data, ids, bs=256, use_meta=False):
     return torch.cat(out)                                   # logits
 
 def train_model(model, data, train_ids, val_ids, seed, epochs=12, lr=3e-4, wd=1e-4, bs=64,
-                augment=None, pos_weight=None, patience=4, use_meta=False, verbose=True):
-    """Trains on train_ids, early-stops on VALIDATION loss. Call set_seed(seed) BEFORE building the model."""
+                augment=None, pos_weight=None, patience=4, use_meta=False, verbose=True,
+                select_best=True):
+    """Trains on train_ids. select_best=True: early-stop on VALIDATION loss and restore the best epoch.
+    select_best=False: train all epochs, keep the final weights (used for overfitting curves).
+    Call set_seed(seed) BEFORE building the model."""
     dev = data.device
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
