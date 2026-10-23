@@ -1,0 +1,4 @@
+run,best_epoch,val_loss_at_best,val_loss_at_epoch30,train_loss_at_best,train_loss_at_epoch30,epochs_saved
+"unregularised (no dropout, no weight decay, no augmentation)",3,0.1710411012172699,0.2400674819946289,0.07750001368881429,0.0005324472410455166,26
+"regularised, default (dropout 0.2, wd 1e-4, augmentation)",18,0.09387370198965073,0.10358992218971252,0.08006129367909964,0.05923479698526049,11
+"regularised, tuned (augmentation)",25,0.09619726985692978,0.10194599628448486,0.04873054856524884,0.04440162586934358,4
