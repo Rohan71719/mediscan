@@ -39,6 +39,9 @@ if __name__ == "__main__":
             rows.append(dict(seed=seed, best_epoch=best_ep, **compute_metrics(yv, probs, 0.5)))
             hists += [dict(seed=seed, **h) for h in hist]
             np.save(OUT / "preds" / f"arogya_{tag}_s{seed}_val.npy", probs)
+            if a.save_models:
+                (OUT / "models").mkdir(exist_ok=True)
+                torch.save(model.state_dict(), OUT / "models" / f"arogya_{tag}_s{seed}.pt")        
             log.info(f"{tag} seed {seed}: bal_acc={rows[-1]['balanced_acc']:.4f} auc={rows[-1]['roc_auc']:.4f} best_ep={best_ep}")
         df = pd.DataFrame(rows); df.to_csv(OUT / f"arogya_{tag}_runs.csv", index=False)
         pd.DataFrame(hists).to_csv(OUT / f"arogya_{tag}_history.csv", index=False)
