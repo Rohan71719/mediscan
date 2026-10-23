@@ -35,7 +35,7 @@ if __name__ == "__main__":
             model = ArogyaNet(**VARIANTS[v]).cuda()
             model, hist, probs, best_ep = train_model(
                 model, data, tr, va, seed, epochs=a.epochs, lr=a.lr, augment=aug, patience=8,
-                use_meta=VARIANTS[v]["meta"], verbose=False)
+                pos_weight=a.pos_weight, use_meta=VARIANTS[v]["meta"], verbose=False)
             rows.append(dict(seed=seed, best_epoch=best_ep, **compute_metrics(yv, probs, 0.5)))
             hists += [dict(seed=seed, **h) for h in hist]
             np.save(OUT / "preds" / f"arogya_{tag}_s{seed}_val.npy", probs)
