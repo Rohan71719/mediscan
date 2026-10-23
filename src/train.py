@@ -42,11 +42,14 @@ def train_model(model, data, train_ids, val_ids, seed, epochs=12, lr=3e-4, wd=1e
         auc = roc_auc_score(yv.cpu().numpy(), vlog.cpu().numpy())
         hist.append(dict(epoch=ep, train_loss=tl / n, val_loss=vl, val_auc=auc))
         if verbose: print(f"ep{ep:02d} train {tl/n:.4f} val {vl:.4f} auc {auc:.4f}")
+        if not select_best:
+            continue                      # no early stopping, no checkpoint selection: full curve
         if vl < best_loss - 1e-4:
             best_loss, best_state, best_ep, bad = vl, copy.deepcopy(model.state_dict()), ep, 0
         else:
             bad += 1
             if bad >= patience: break
-    model.load_state_dict(best_state)
+    if select_best:
+        model.load_state_dict(best_state)
     probs = torch.sigmoid(predict(model, data, val_ids, use_meta=use_meta)).cpu().numpy()
     return model, hist, probs, best_ep
