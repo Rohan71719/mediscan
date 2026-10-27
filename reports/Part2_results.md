@@ -195,3 +195,42 @@ not test.]
 validation ROC-AUC by 0.0013 to 0.0015, below the margin of 0.002 fixed in advance, and costs three to four
 times the inference time. Limits: unweighted votes, validation split only, and "best member" is itself
 chosen on the validation split.
+
+## Task 5: Feature-space analysis
+*Script: `features.py`. Outputs: `outputs/error_profile.csv`; figures `fig08_embeddings.png`,
+`fig09_errors.png`.*
+
+**Method.** The 256-dimensional penultimate-layer embedding (the pooled vector before the
+classifier) of the seed-0 ArogyaNet was computed for the 852 validation images, reduced to two
+dimensions with PCA and t-SNE (perplexity 30), and plotted by true class and by correct/incorrect at
+the chosen threshold (0.416). k-means with k = 2 was run on the full 256-dimensional embeddings.
+[Describe fig08: how the classes separate in PCA and t-SNE, and where the incorrect points lie.]
+
+**k-means against the labels.**
+
+| | NORMAL | PNEUMONIA |
+|---|---|---|
+| Cluster 0 | 11 | 602 |
+| Cluster 1 | 216 | 23 |
+
+Purity 0.960 (a clustering that ignores the data scores 0.734, the share of pneumonia images),
+adjusted Rand index 0.840, NMI 0.726. Because the network was trained on these labels, this shows
+that the last layer separates the classes, not that the classes cluster naturally in image space.
+The 29 errors at threshold 0.416 (18 false alarms, 11 missed pneumonia) fall mostly in the smaller
+cluster: 7.5% (18 of 239) against 1.8% (11 of 613), and that cluster also holds 23 sick children.
+
+**What the misclassified images have in common.**
+- *Image size.* 
+<p align="center">
+  <img src="../figures/fig09_errors.png" alt="error table" width="70%">
+  <br>
+  <em>Figure 9: error table.</em>
+  
+  False alarms have a median area of 1.36 M pixels against
+  2.36 M for correctly classified healthy children; missed pneumonia cases have 1.65 M against
+  0.97 M for correctly classified sick children. Each error type therefore has a size typical of the
+  opposite class (Section 1 shows that NORMAL images are larger), consistent with the shortcut found
+  in Section 4. This is suggestive only (18 and 11 images, medians, no significance test).
+- *Confidence.* 67% of false alarms and 73% of missed pneumonia have a predicted probability
+  between 0.1 and 0.9, against 9% and 6% of correct predictions, but the median false alarm has
+  p = 0.86, so some errors are confident.
