@@ -53,7 +53,8 @@ if __name__ == "__main__":
     print(f"confusion matrix: TN {tn}  FP {fp}  FN {fn}  TP {tp}")
     for c in COLS:
         print(f"{c:20s} {h0[c]:.4f}   95% bootstrap CI [{B[c].quantile(.025):.4f}, {B[c].quantile(.975):.4f}]")
-    print("recall exact 95% CI [%.4f, %.4f]; specificity exact 95%% CI [%.4f, %.4f]" % (*cp(tp, tp + fn), *cp(tn, tn + fp)))
+    lo_r, hi_r = cp(tp, tp + fn); lo_s, hi_s = cp(tn, tn + fp)
+    print(f"recall exact 95% CI [{lo_r:.4f}, {hi_r:.4f}]; specificity exact 95% CI [{lo_s:.4f}, {hi_s:.4f}]")
     print("\n== robustness only (seeds 0, 1, 2) ==\n", R[["seed"] + COLS].round(4).to_string(index=False))
     print("mean ± SD:", {c: f"{R[c].mean():.4f} ± {R[c].std():.4f}" for c in COLS})
     print("for reference, seed 0 at threshold 0.5:", {k: round(v, 4) for k, v in compute_metrics(y, p, 0.5).items() if k in COLS})
