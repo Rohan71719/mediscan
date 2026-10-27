@@ -99,3 +99,46 @@ validation loss rises 40% above its minimum; early stopping saves 26 of 30 epoch
 validation loss. With dropout, weight decay and augmentation the validation minimum moves to epoch 19
 and the penalty for training on to epoch 30 is small (+0.010), so early stopping mainly saves compute.
 One seed; validation loss fluctuates between epochs (Section 6), so the best epochs are approximate.
+
+## Task 2: Evaluation
+*Scripts: `cv_eval.py` (cross-validation); the locked-test evaluation is added after the final
+freeze. Outputs: `outputs/cv_folds.csv`, `cv_summary_thr0.4158.csv`, `cv_summary_thr0.5000.csv`,
+`cv_oof_preds.csv`.*
+
+**5-fold stratified, grouped cross-validation on the training pool** (train + validation, 4,972
+images; folds from `split.csv`, grouped by patient and near-duplicate cluster). Each fold trains
+ArogyaNet (default configuration) from scratch on the other four folds for 30 epochs and is scored
+with its final-epoch weights, so nothing is selected on the held-out fold.
+
+| Metric (mean ± SD over 5 folds) | Threshold 0.416 (chosen) | Threshold 0.5 |
+|---|---|---|
+| Accuracy | 0.9655 ± 0.0038 | 0.9660 ± 0.0037 |
+| Balanced accuracy | 0.9545 ± 0.0078 | 0.9575 ± 0.0058 |
+| Precision | 0.9748 ± 0.0071 | 0.9777 ± 0.0059 |
+| Recall (sensitivity) | 0.9780 ± 0.0084 | 0.9755 ± 0.0084 |
+| Specificity | 0.9311 ± 0.0219 | 0.9394 ± 0.0176 |
+| F1 | 0.9764 ± 0.0032 | 0.9766 ± 0.0032 |
+| ROC-AUC | 0.9934 ± 0.0021 | 0.9934 ± 0.0021 |
+| PR-AUC | 0.9975 ± 0.0009 | 0.9975 ± 0.0009 |
+| Camp precision (10% sick) | 0.619 ± 0.071 | 0.647 ± 0.064 |
+| Camp cost per 1,000 children | 106.0 ± 10.9 | 103.4 ± 9.5 |
+
+Pooled over all out-of-fold images, threshold 0.416: TN 1,249, FP 92, FN 79, TP 3,552 (threshold
+0.5: TN 1,260, FP 81, FN 88, TP 3,543).
+
+**Reading.** Cross-validation agrees with the single validation split (balanced accuracy 0.955 vs
+0.954, ROC-AUC 0.993 vs 0.992). Specificity ranges from 0.898 to 0.955 across folds, so one
+validation split with 227 healthy images is more uncertain than its seed spread suggests. Expected
+camp cost is 106 ± 11 per 1,000 children, slightly above the validation estimate (99). The chosen
+threshold is not distinguishable from 0.5 (cost 106.0 vs 103.4), as expected from the flat cost
+curve in Task 1; we keep it because it was fixed before cross-validation. Because the threshold was
+selected on the validation split, which is part of the pool, the figures at 0.416 are slightly
+optimistic.
+
+**Why accuracy alone is the wrong headline.** At the camp's 10% prevalence a tool that refers
+nobody is 90% accurate while missing every sick child, so accuracy rewards ignoring the class we
+care about. A miss costs about 20 false alarms, so two models with the same accuracy can differ
+twenty-fold in expected cost; we therefore report recall, specificity and expected cost at a stated
+threshold.
+
+**Locked test set:** [added after the final freeze].
