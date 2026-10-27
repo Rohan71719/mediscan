@@ -142,3 +142,56 @@ twenty-fold in expected cost; we therefore report recall, specificity and expect
 threshold.
 
 **Locked test set:** [added after the final freeze].
+
+
+## Task 4: Ensembles
+*Scripts: `ensemble.py`, `features.py`. Outputs: `outputs/ensemble_table.csv`, `embed_models_runs.csv`.*
+
+**Method.** Soft voting averages the predicted probabilities of the members. Members are the Part 1
+models (ArogyaNet full, without residual connections, without SE, two-branch, and fine-tuned ResNet18),
+combined seed by seed (seed s of every model), so each ensemble row is a mean ± SD over three seeds. Random
+Forest (300 trees) and AdaBoost (200 stumps) were trained on the 256-dimensional penultimate-layer
+embeddings of ArogyaNet (training split only). Everything is evaluated on the validation split at
+threshold 0.5.
+
+
+| Model / Variant | Balanced Acc. | Specificity | Recall | ROC-AUC | PR-AUC |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **ArogyaNet full** | 0.9542 ± 0.0042 | 0.9280 ± 0.0051 | 0.9803 ± 0.0051 | 0.9919 ± 0.0009 | 0.9969 ± 0.0004 |
+| **ArogyaNet no residual** | 0.9544 ± 0.0073 | 0.9280 ± 0.0067 | 0.9808 ± 0.0085 | 0.9920 ± 0.0006 | 0.9969 ± 0.0003 |
+| **ArogyaNet no SE** | 0.9479 ± 0.0048 | 0.9192 ± 0.0092 | 0.9765 ± 0.0024 | 0.9914 ± 0.0010 | 0.9967 ± 0.0004 |
+| **ArogyaNet two-branch** | 0.9532 ± 0.0070 | 0.9266 ± 0.0102 | 0.9797 ± 0.0040 | 0.9926 ± 0.0006 | 0.9973 ± 0.0002 |
+| **ResNet18 (ImageNet)** | 0.9630 ± 0.0028 | 0.9398 ± 0.0111 | 0.9861 ± 0.0067 | 0.9958 ± 0.0006 | 0.9984 ± 0.0003 |
+| **Random Forest on embeddings** | 0.9530 ± 0.0035 | 0.9236 ± 0.0051 | 0.9824 ± 0.0028 | 0.9840 ± 0.0026 | 0.9903 ± 0.0018 |
+| **AdaBoost on embeddings** | 0.9465 ± 0.0036 | 0.9148 ± 0.0025 | 0.9781 ± 0.0046 | 0.9854 ± 0.0030 | 0.9919 ± 0.0037 |
+| **Soft vote, 4 ArogyaNet variants** | 0.9574 ± 0.0027 | 0.9339 ± 0.0044 | 0.9808 ± 0.0016 | 0.9934 ± 0.0006 | 0.9975 ± 0.0003 |
+| **Soft vote, 4 ArogyaNet + ResNet18** | 0.9602 ± 0.0034 | 0.9354 ± 0.0067 | 0.9851 ± 0.0024 | 0.9949 ± 0.0009 | 0.9981 ± 0.0003 |
+| **Soft vote, 3 seeds of ArogyaNet (1 run)** | 0.9544 | 0.9295 | 0.9792 | 0.9932 | 0.9975 |
+| **Soft vote, 3 seeds of ResNet18 (1 run)** | 0.9664 | 0.9471 | 0.9856 | 0.9967 | 0.9987 |
+
+> **Note:** Values represent Validation metrics at a threshold of 0.5, reported as mean ± SD over 3 seeds (unless specified as a single 1-run ensemble).
+
+
+**Does the ensemble beat its best member?** The ArogyaNet-only vote improves on its best member by 0.003
+balanced accuracy (0.9574 vs 0.9544) and 0.0008 ROC-AUC, within the seed spread. The vote that adds
+ResNet18 does not beat ResNet18 alone (0.9602 vs 0.9630 balanced accuracy; ROC-AUC 0.9949 vs 0.9958).
+Reasons: (1) the members are unequal, since ResNet18 made 20 errors on seed 0 against 31 to 34 for the
+others, so an unweighted average pulls it toward weaker models; (2) the errors are largely shared: the mean
+pairwise error overlap (Jaccard) is 0.56, probabilities correlate at 0.83, and 15 images are wrong in
+every member, of 51 that are wrong in at least one, so voting can only change the 36 images on which the
+members disagree, and the 15 shared errors (1.8% of the validation set) are a floor that no average can
+remove. Averaging three seeds of the same model gains little for the same reason (ResNet18: +0.003 balanced
+accuracy; ArogyaNet: +0.0002).
+
+**Random Forest and AdaBoost on embeddings.** They do not beat the network's own classifier: balanced
+accuracy 0.953 (Random Forest) and 0.947 (AdaBoost) against 0.954, and ROC-AUC 0.984 and 0.985 against
+0.992. The embedding was trained jointly with the final linear layer, so the classes are already nearly
+linearly separable and trees add nothing; their probabilities are also coarser, which costs ranking
+resolution. [Trees were fitted on training embeddings, which are cleaner than validation embeddings
+because the network has partly memorised the training set; this is a plausible explanation that we did
+not test.]
+
+**Decision.** We keep a single ArogyaNet (seed 0). A vote of three ArogyaNet seeds or four variants improves
+validation ROC-AUC by 0.0013 to 0.0015, below the margin of 0.002 fixed in advance, and costs three to four
+times the inference time. Limits: unweighted votes, validation split only, and "best member" is itself
+chosen on the validation split.
