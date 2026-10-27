@@ -143,6 +143,42 @@ threshold.
 
 **Locked test set:** [added after the final freeze].
 
+**Locked test set, evaluated once.** *Script: `final_eval.py`. Outputs: `outputs/test_runs.csv`,
+`test_preds_seed0.csv`; figure `fig10_test_confusion.png`.* The system was fixed beforehand: ArogyaNet
+(default configuration, seed 0), threshold 0.416. The test split has 852 images (238 NORMAL, 614
+PNEUMONIA). Confusion matrix: TN 216, FP 22, FN 10, TP 604.
+
+| Metric | Value | 95% CI (bootstrap, 1,000 resamples) |
+|---|---|---|
+| Accuracy | 0.9624 | [0.9495, 0.9754] |
+| Balanced accuracy | 0.9456 | [0.9273, 0.9642] |
+| Precision | 0.9649 | [0.9508, 0.9791] |
+| Recall (sensitivity) | 0.9837 | [0.9731, 0.9934]; exact [0.9703, 0.9922] |
+| Specificity | 0.9076 | [0.8708, 0.9431]; exact [0.8634, 0.9412] |
+| F1 | 0.9742 | [0.9645, 0.9830] |
+| ROC-AUC | 0.9937 | [0.9899, 0.9968] |
+| PR-AUC | 0.9976 | [0.9961, 0.9988] |
+| Camp precision (10% sick) | 0.542 | [0.458, 0.658] |
+| Camp cost per 1,000 children | 115.8 | [77.1, 153.9] |
+
+Seeds 1 and 2 (robustness only; the headline seed was fixed in advance): balanced accuracy 0.9515 and
+0.9453, recall 0.987 and 0.979, specificity 0.916 and 0.912; mean ± SD over three seeds: balanced
+accuracy 0.9475 ± 0.0035, recall 0.983 ± 0.004, specificity 0.912 ± 0.004, camp cost 113 ± 10.
+
+**Agreement with validation and cross-validation.** Recall (0.984), ROC-AUC (0.994) and balanced accuracy
+(0.946 against 0.955) agree. Specificity is lower on the test split (0.908 against 0.925 on validation and
+0.931 in cross-validation), but its 95% interval (0.863 to 0.941) contains both, so we do not call this a
+drop; validation was also used for early stopping and for choosing the threshold, which makes its figures
+slightly optimistic. At the camp's 10% prevalence the expected result per 1,000 children is about 98 sick
+children found, 1.6 missed and 83 healthy children flagged; only 54% of flagged children are truly sick.
+The frozen threshold (0.416) did not outperform 0.5 on the test split (about 18 false alarms and 12
+misses at 0.5, against 22 and 10), a difference well within the noise, and it was not changed. This
+test split is a new grouped split of the pooled images and is not comparable with the previous
+engineer's 98.4%, which was measured on the original test folder.
+
+*Run history:* `final_eval.py` was run twice; the first run stopped at a formatting error in a print
+statement after the metrics were computed, and the fix changed no model, threshold or metric code.
+
 
 ## Task 4: Ensembles
 *Scripts: `ensemble.py`, `features.py`. Outputs: `outputs/ensemble_table.csv`, `embed_models_runs.csv`.*
