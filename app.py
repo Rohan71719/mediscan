@@ -25,6 +25,6 @@ def run(f):
 
 load()
 demo = gr.Interface(fn=run, inputs=gr.File(label="Chest X-ray image", file_types=["image"], type="filepath"),
-                    outputs=[gr.Textbox(label="Result", lines=5), gr.Image(label="Image received", type="numpy", format="png")],
+                    outputs=[gr.Textbox(label="Result", lines=5), gr.Image(label="Image received", type="numpy")],
                     title="MediScan (ArogyaNet)", description=NOTE, flagging_mode="never")
 if __name__ == "__main__": demo.launch(share=False)
