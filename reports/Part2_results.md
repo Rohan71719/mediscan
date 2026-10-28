@@ -347,3 +347,45 @@ ArogyaNet. Raising the threshold alone does not repair a population shift either
 sources (predominantly adult patients); one fix was tried; the same-threshold diagnostic was added after seeing
 the main result and is labelled post-hoc; the duplicate screen uses thumbnail correlation (stable across cutoffs
 0.97 to 0.99).
+
+## Task 7: Shipping
+*Scripts: `build_gate.py`, `predict.py`, `app.py`, `band_eval.py`, `ood_tests.py`, `latency.py`. Files: `model/arogyanet.pt`,
+`model/gate_stats.npz`, `model/config.json`. Outputs: `outputs/ood_tests.md`, `outputs/latency.md`.*
+
+**Model and interface.** The shipped model is ArogyaNet (default configuration, seed 0, chosen before testing; 300,641
+parameters) with the threshold 0.4158 fixed in Task 1. `predict.py <image>` prints the class and the probability of
+pneumonia; `app.py` wraps it in a Gradio page. Preprocessing is identical to training (maximum pixel difference to the
+cached training arrays: 0 on six checked images; probabilities agree with the validation run to within 0.001).
+
+**Low-confidence band.** Probability below 0.4158: "no pneumonia suspected"; 0.4158 to 0.90: "LOW CONFIDENCE: refer to a
+clinician"; 0.90 and above: "PNEUMONIA SUSPECTED: refer". The lower edge is the referral threshold evaluated in Tasks 1
+and 2, so the shipped rule is the tested rule. Errors concentrate in the uncertain zone: on validation, 69% of errors but
+7% of correct predictions have a probability between 0.10 and 0.90, and 5.8% of validation images fall in the band. A
+lower edge of 0.10 would cut missed cases from 1.76 to 0.48 per 1,000 children but raise false alarms from 71 to 147
+(cost 156 against 107), so we did not adopt it. 73% of the missed pneumonia cases have probabilities below the
+threshold and are reported as "no pneumonia suspected", so the tool never replaces a clinician's judgement for a
+symptomatic child; the screen says so.
+
+**Input checks.** (1) Colour images (channel difference above 6 grey levels) are refused; (2) images with a pixel
+standard deviation below 10 are refused (the smallest training image has 20); (3) an embedding-distance gate refuses images
+whose squared Mahalanobis distance (256-dimensional embedding, Ledoit-Wolf covariance from the training split) exceeds
+455, the 99th percentile of the validation split (median 198 on training, 206 on validation images).
+
+| Test | Result |
+|---|---|
+| Blank white, blank black, uniform grey | Refused (blank) |
+| Noise (colour), photos of a cat, astronaut, coffee and a dog (colour) | Refused (colour) |
+| Noise (grey), gradient (grey), greyscale astronaut, coffee, dog | Refused by the embedding gate (d² 563 to 2,146) |
+| Greyscale cat photo | **Not refused**: low confidence, p = 0.79, d² = 387 |
+| 300 real chest X-rays from the primary data (mixed splits) | 8 refused (2.7%; 95% interval 1.4% to 5.2%) |
+
+The dog photo and the blank image are refused, and no non-X-ray input receives a confident pneumonia or normal result. One of
+12 non-X-ray test images, a greyscale photo of a cat, passed the gate and was sent to clinician review; the cutoff was
+not changed after seeing it. About 1 in 37 genuine X-rays is refused. The gate was not tested on adult radiographs (the
+external data may be used only once); the restriction to children rests on the external false-alarm result (Task 6).
+
+**Speed and size.** [Measured on: Kaggle notebook CPU, 2 logical CPUs; replace or add your laptop.] Time per image in a
+running process, including reading the file, preprocessing, the network and the checks (200 runs after warm-up): median
+21.9 ms, 95th percentile 23.8 ms, maximum 27.8 ms with one thread (limit 200 ms); more threads do not help. Model files:
+1.27 MB network, 0.26 MB gate statistics, 1.54 MB in total (limit 25 MB). [Add the cold-start time of `python predict.py`
+measured on your laptop.]
