@@ -2,8 +2,7 @@
 
 **Bottom line.** The previous model's "98.4% accuracy" cannot predict how it behaves at a health camp, and
 "99% accuracy" is the wrong target. We rebuilt the model, which now finds about 98 of every 100 sick
-children at a stated cost of about 83 false alarms per 1,000 children screened, fits in 1.2 MB, and
-[runs in X ms on a laptop CPU]. It is a screening aid, not a diagnosis, and must not be used on adults.
+children at a stated cost of about 83 false alarms per 1,000 children screened, fits in 1.2 MB. It is a screening aid, not a diagnosis, and must not be used on adults.
 
 ## 1. What went wrong with the 98.4% (instruction 1: proof)
 - The earlier test and validation sets could not support the claim: the validation set had **16** images (a
@@ -54,9 +53,9 @@ children (specificity above 99%); our model achieves 91%, and no model we built 
 specificity of at least 90%, and expected cost per 1,000 children, all measured with confidence intervals on
 paediatric images from an independent hospital at the camp's prevalence.
 
-## 4. Speed and size (instruction 3)
-Model file 1.2 MB (1.5 MB with the safety checks), limit 25 MB. CPU time per image on [laptop model]:
-median [X] ms, 95th percentile [Y] ms, limit 200 ms.
+## 4. Speed and size 
+Model file 1.27 MB (1.54 MB with the safety checks), limit 25 MB. CPU time per image on a 2-logical-CPU environment: median 21.5 to 21.9 ms, 95th percentile 23.8 to 23.9 ms, limit 200 ms.
+
 
 ## 5. What it must not be used for
 - As a diagnosis, or to rule pneumonia out in a child who has symptoms.
