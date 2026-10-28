@@ -4,6 +4,8 @@
 #   /kaggle/input/<any>/chest_xray/{train,val,test}/...          primary dataset
 #   /kaggle/input/<any>/.../{Normal,Viral Pneumonia}/images/*.png external dataset (only with RUN_EXTERNAL=1)
 # Results go to /kaggle/working/outputs and /kaggle/working/figures, then are copied to ./outputs and ./figures.
+
+
 set -euo pipefail
 cd "$(dirname "$0")"
 [ -d /kaggle/input ] || { echo "Create /kaggle/input and /kaggle/working and put the datasets there (see README)"; exit 1; }
