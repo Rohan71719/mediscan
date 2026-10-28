@@ -148,7 +148,7 @@ if __name__ == "__main__":
     for nm, mk in [("external Normal, independent", (y == 0) & ~flag), ("external Normal, duplicates", (y == 0) & flag),
                    ("external Viral, independent", (y == 1) & ~flag), ("external Viral, duplicates", (y == 1) & flag)]:
         masks[nm] = np.r_[np.zeros(n0, bool), mk]
-       S = pd.DataFrame({k: pd.concat([D[m].median(), pd.Series({"n": int(m.sum())})]) for k, m in masks.items() if m.sum()}).T
+    S = pd.DataFrame({k: pd.concat([D[m].median(), pd.Series({"n": int(m.sum())})]) for k, m in masks.items() if m.sum()}).T
     S.to_csv(OUT / "external_pixel_stats.csv"); print("\n== median pixel statistics (224x224 arrays; area/aspect from original files) ==\n", S.round(2).to_string())
     fig, ax = plt.subplots(1, 4, figsize=(16, 3.4))
     for k, col in enumerate(["area", "aspect", "brightness", "contrast"]):
