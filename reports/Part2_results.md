@@ -270,3 +270,72 @@ cluster: 7.5% (18 of 239) against 1.8% (11 of 613), and that cluster also holds 
 - *Confidence.* 67% of false alarms and 73% of missed pneumonia have a predicted probability
   between 0.1 and 0.9, against 9% and 6% of correct predictions, but the median false alarm has
   p = 0.86, so some errors are confident.
+
+## Task 6: Generalisation test (external dataset, evaluated once)
+*Script: `external_eval.py`; post-hoc diagnostic: `external_posthoc.py`. Outputs: `external_runs.csv`,
+`external_preds.csv`, `external_pixel_stats.csv`, `external_posthoc.csv`; figures `fig11`, `fig12`.*
+
+**What the external data really contain.** The external folder holds 11,537 images (10,192 Normal, 1,345
+Viral Pneumonia). Near-duplicate screening against all 5,824 primary images (correlation of 32×32
+thumbnails, cutoff 0.97; the count is the same from 0.97 to 0.99, and distinct primary images never exceed
+0.974) flags **all 1,345 Viral and 1,341 Normal images, 2,686 in total**, as copies of primary images: 1,894
+of our training split, 401 of the test split and 391 of the validation split. This agrees with the dataset's
+documented sources (the Viral class and 1,341 Normal images come from the same Kaggle pediatric database as
+our primary data; the other 8,851 Normal images come from the RSNA challenge). As distributed on
+Kaggle, this dataset is therefore not independent of the primary data, and the independent remainder
+(8,851 images) contains **no pneumonia cases**, so recall cannot be measured on independent external data.
+The headline is the false-alarm rate on these images, which are adult radiographs from different sources
+and equipment, whereas ArogyaNet was trained on children aged 1 to 5: this is a stress test of false
+alarms, not a measurement of performance at the camp. The decision rules for this test were written before
+the run: independent subset as headline; the fix is judged on the paired-bootstrap gain in balanced accuracy,
+or in specificity when fewer than 30 positives exist.
+
+**Results (frozen models and thresholds, seed 0 unless stated).**
+
+| Set | n | Metric | Default (thr 0.416) | Fix (thr 0.550) |
+|---|---|---|---|---|
+| Independent external Normal | 8,851 | Specificity | 0.651 (exact 95% CI 0.641 to 0.661) | 0.678 |
+| | | 3-seed mean | 0.646 | 0.691 |
+| Duplicates of primary training images | 1,894 | Recall / specificity | 0.981 / 0.983 | 0.942 / 0.992 |
+| Duplicates of primary val/test images | 792 | Recall / specificity | 0.970 / 0.964 | 0.938 / 0.977 |
+| Internal locked test (reference) | 852 | Recall / specificity | 0.984 / 0.908 | not evaluated |
+
+**How far performance falls.** Specificity falls from 0.908 on the internal test to 0.651 on independent
+external normals: the false-alarm rate rises from 9.2% to 34.9%, about 3.8-fold. The duplicate images behave
+like internal data (they are internal data); they differ in ROC-AUC (0.9988 for copies of training images,
+0.9935 for copies of val/test images), a small memorisation effect.
+
+**Why (distribution mismatch).** Median pixel statistics (224×224 arrays; area and aspect from the
+original files): primary NORMAL (train) area 2.18 M pixels, aspect 1.23, brightness 122.3, contrast 61.0;
+primary PNEUMONIA (train) 0.89 M, 1.49, 122.7, 54.4; external independent Normal 89,401 (299×299), 1.00,
+126.4, 63.9; external duplicates of primary Normal 89,401, 1.00, 122.1, 61.0 
+<p align="center">
+  <img src="../figures/fig11_external_pixel_stats.png" alt="external_pixel_stats" width="70%">
+  <br>
+  <em>Figure 11: external_pixel_stats.</em>
+
+(1) All external
+images are square 299×299, so the size and shape differences that separate the classes in the primary data
+(Sections 1 and 4) carry no information there. 
+(2) Independent normals are about 4 grey levels brighter and 3
+more contrasty than primary normals, 0.3 and 0.5 of a per-image standard deviation; modest. 
+(3) A control:
+the 1,341 external Normal duplicates passed through the same file pipeline and have the same brightness and
+contrast as primary normals, and are classified well (specificity 0.96 to 0.98), so file format and
+resolution handling do not explain the drop. The difference must lie in the image content: a different
+patient population (the independent images come from the RSNA challenge, predominantly adult patients),
+scanners, exposure, framing and projection, which these summary statistics do not capture. Together with the
+shortcut analysis (Section 4) and the finding that errors have image sizes typical of the other class (Task
+5), a model that partly relies on such cues is expected to degrade when they change.
+
+**The fix (pre-declared): retraining with stronger brightness and contrast augmentation** (brightness ±0.30,
+contrast ±0.40 instead of ±0.10), threshold re-chosen on validation (0.550). On independent normals its
+specificity is 0.678 against 0.651 (gain +0.027, paired-bootstrap 95% interval [+0.019, +0.034]; 3-seed mean
+0.691 against 0.646), so the pre-declared rule is met. We do not claim it solves the problem: (1) the
+false-alarm rate remains 32%; (2) part of the gain comes from the higher threshold [post-hoc, both models at
+the same threshold: insert]; (3) it lowers recall on in-distribution images (about 0.94 against 0.97 to
+0.98; 55 against 18 missed on copies of training images), which at 20 false alarms per miss is not clearly a
+good trade; (4) its internal validation cost is worse (119 against 99 per 1,000 children).
+
+**Limits.** No independent positives, so no external recall; adult normals only; one fix tried; the
+post-hoc check was added after seeing the main result.
