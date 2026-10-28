@@ -329,13 +329,21 @@ shortcut analysis (Section 4) and the finding that errors have image sizes typic
 5), a model that partly relies on such cues is expected to degrade when they change.
 
 **The fix (pre-declared): retraining with stronger brightness and contrast augmentation** (brightness ±0.30,
-contrast ±0.40 instead of ±0.10), threshold re-chosen on validation (0.550). On independent normals its
-specificity is 0.678 against 0.651 (gain +0.027, paired-bootstrap 95% interval [+0.019, +0.034]; 3-seed mean
-0.691 against 0.646), so the pre-declared rule is met. We do not claim it solves the problem: (1) the
-false-alarm rate remains 32%; (2) part of the gain comes from the higher threshold [post-hoc, both models at
-the same threshold: insert]; (3) it lowers recall on in-distribution images (about 0.94 against 0.97 to
-0.98; 55 against 18 missed on copies of training images), which at 20 false alarms per miss is not clearly a
-good trade; (4) its internal validation cost is worse (119 against 99 per 1,000 children).
+contrast ±0.40 instead of ±0.10), threshold re-chosen on validation by the cost rule (0.550). At the frozen
+thresholds its specificity on independent normals is 0.678 against 0.651 (seed 0; gain +0.027, paired-bootstrap
+95% interval [+0.019, +0.034]; 3-seed mean 0.691 against 0.646), so the pre-declared rule is met. A post-hoc
+diagnostic, run on the saved predictions after seeing this result, compares the models at the same threshold:
+at 0.416 the 3-seed mean specificities are 0.647 (fix) and 0.646 (default); at 0.550 they are 0.691 and 0.671.
+For seed 0 the gain is −0.011 [−0.018, −0.003] at 0.416 and +0.001 [−0.007, +0.007] at 0.550. Raising the default
+model's own threshold from 0.416 to 0.550 already lifts its specificity from 0.646 to 0.671, about half of the
+mean gain of +0.045, and the remainder is not consistent across thresholds and seeds, so we cannot attribute a
+benefit to the retraining. The fix also lowers recall on in-distribution viral images (3-seed mean 0.962 against
+0.980 at 0.416; 0.948 against 0.971 at 0.550; these images are copies of primary data), at 20 false alarms per miss
+this is not clearly a good trade, its internal validation cost is worse (119 against 99 per 1,000 children),
+and the false-alarm rate remains 31% to 35%. We therefore do not adopt it: the shipped model is the default
+ArogyaNet. Raising the threshold alone does not repair a population shift either.
 
-**Limits.** No independent positives, so no external recall; adult normals only; one fix tried; the
-post-hoc check was added after seeing the main result.
+**Limits.** No independent positives, so no external recall; the independent images are normals from other
+sources (predominantly adult patients); one fix was tried; the same-threshold diagnostic was added after seeing
+the main result and is labelled post-hoc; the duplicate screen uses thumbnail correlation (stable across cutoffs
+0.97 to 0.99).
