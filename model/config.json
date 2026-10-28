@@ -1,0 +1,10 @@
+{
+  "model": "ArogyaNet full, default configuration, seed 0",
+  "threshold": 0.4158,
+  "band_lo": 0.1,
+  "band_hi": 0.9,
+  "gate_d2": 455.0179971356554,
+  "gate_quantile": 0.99,
+  "min_std": 10.0,
+  "max_colour_diff": 6.0
+}
