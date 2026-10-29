@@ -2,9 +2,11 @@ import glob
 from pathlib import Path
 import numpy as np, pandas as pd, torch
 import torch.nn.functional as F
+from src.utils import find_files
+
 
 def find_cache():
-    hits = glob.glob("/kaggle/input/**/meta.csv", recursive=True)
+    hits = find_files("meta.csv")
     if not hits: raise FileNotFoundError("attach the mediscan-cache dataset")
     return Path(hits[0]).parent
 
