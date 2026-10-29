@@ -5,14 +5,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 from tqdm import tqdm
-from src.utils import OUT, compute_metrics, set_seed, get_logger
+from src.utils import OUT, compute_metrics, set_seed, get_logger, find_files
 
 log = get_logger("baselines")
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--cache", default=None)
     a = ap.parse_args()
-    hits = glob.glob("/kaggle/input/**/meta.csv", recursive=True)
+    hits = find_files("meta.csv")
     cache = a.cache or str(__import__("pathlib").Path(hits[0]).parent)
     set_seed(0)
     X = np.load(f"{cache}/X96.npy"); meta = pd.read_csv(f"{cache}/meta.csv"); y = meta.label.values
