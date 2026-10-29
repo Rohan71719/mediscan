@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from predict import analyze
+from scipy.stats import beta
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -30,6 +31,8 @@ if __name__ == "__main__":
             if r["status"] != "REJECTED": fails.append(name)
     print("\nNOT rejected (these are failures):", fails if fails else "none")
     if a.xray_dir:
-        fs = glob.glob(f"{a.xray_dir}/**/*.jp*g", recursive=True); random.Random(0).shuffle(fs); fs = fs[:300]
-        rej = sum(analyze(f)["status"] == "REJECTED" for f in fs)
-        print(f"real chest X-rays from the primary dataset (mixed train/val/test): {rej} of {len(fs)} rejected ({rej / len(fs):.1%})")
+        fs = sorted(glob.glob(f"{a.xray_dir}/**/*.jp*g", recursive=True)); random.Random(0).shuffle(fs); fs = fs[:1000]
+        rej = sum(analyze(f)["status"] == "REJECTED" for f in fs); n = len(fs)
+        lo = beta.ppf(0.025, rej, n - rej + 1) if rej else 0.0; hi = beta.ppf(0.975, rej + 1, n - rej) if rej < n else 1.0
+        print(f"real chest X-rays from the primary dataset (fixed sample, mixed train/val/test): {rej} of {n} rejected "
+              f"({rej / n:.1%}, exact 95% interval {lo:.1%} to {hi:.1%})")
