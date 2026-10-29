@@ -18,7 +18,7 @@ step "1. audit: inventory, pixel statistics, duplicates (Part 1, tasks 1-2)"; py
 step "2. validation design: grouped stratified split (task 3)";               python split.py
 step "3. strict leakage check (task 2)";                                      python leakage_check.py
 step "4. cache 96 and 224 px arrays";                                         python cache_data.py
-rm -rf /kaggle/input/mediscan-cache; cp -r "$OUT/cache" /kaggle/input/mediscan-cache
+
 
 step "5. shortcut hunt and baselines (tasks 4-5)"; python shortcut.py; python baselines.py
 step "6. transfer baseline, ResNet18 (task 6; needs internet once for ImageNet weights)"; python transfer.py
@@ -31,7 +31,7 @@ python run_variants.py --variants full --save_models
 python run_variants.py --variants full --pos_weight 0.371 --save_models
 python train_fix.py
 python export_preds.py
-rm -rf /kaggle/input/mediscan-models; cp -r "$OUT/models" /kaggle/input/mediscan-models
+
 
 step "8. threshold and cost matrix (Part 2, task 1)";            python threshold.py --preds "$OUT/val_preds.csv"
 step "9. tuning and overfitting curves (task 3)";               python tune.py
