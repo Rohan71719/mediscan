@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from scipy.stats import beta
 from sklearn.metrics import roc_auc_score, average_precision_score
-from src.utils import OUT, FIG, get_logger
+from src.utils import OUT, FIG, get_logger, find_files
 from src.data import find_cache
 from src.models import ArogyaNet
 
@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
     # ---------- 2. predictions of the frozen models ----------
     def weights(name):
-        h = glob.glob(f"/kaggle/input/**/{name}", recursive=True); assert h, f"missing {name}"; return h[0]
+        h = find_files(name); assert h, f"missing {name}"; return h[0]
     P = {}
     for kind, pat in [("default", "arogya_full_224_aug_saved_s{}.pt"), ("fix", "arogya_fix_s{}.pt")]:
         for s in range(3):
