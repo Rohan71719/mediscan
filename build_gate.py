@@ -1,7 +1,7 @@
 import argparse, glob, json
 import numpy as np, torch
 from sklearn.covariance import LedoitWolf
-from src.utils import OUT
+from src.utils import OUT, find_files
 from src.data import Data
 from src.models import ArogyaNet
 
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     ap.add_argument("--gate_q", type=float, default=0.99)
     a = ap.parse_args()
     d = Data(224); tr, va = d.idx["train"], d.idx["val"]                       # the test split is not used
-    w = glob.glob(f"/kaggle/input/**/arogya_full_224_aug_saved_s{a.seed}.pt", recursive=True); assert w
+    w = find_files(f"arogya_full_224_aug_saved_s{a.seed}.pt"); assert w
     m = ArogyaNet().cuda(); m.load_state_dict(torch.load(w[0], map_location="cuda")); m.eval()
     Etr, Eva = embed(m, d, tr), embed(m, d, va)
     lw = LedoitWolf().fit(Etr); mu, prec = lw.location_, lw.precision_
