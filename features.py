@@ -7,14 +7,14 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
-from src.utils import OUT, FIG, compute_metrics, get_logger
+from src.utils import OUT, FIG, compute_metrics, get_logger, find_files
 from src.data import Data
 from src.models import ArogyaNet
 
 log = get_logger("features")
 
 def weights(seed):
-    h = glob.glob(f"/kaggle/input/**/arogya_full_224_aug_saved_s{seed}.pt", recursive=True)
+    h = find_files(f"arogya_full_224_aug_saved_s{seed}.pt")
     assert h, f"weights for seed {seed} not found: attach the mediscan-models dataset"
     return h[0]
 
