@@ -57,3 +57,11 @@ def compute_metrics(y_true, y_prob, thr=0.5):
         "pr_auc": average_precision_score(y_true, y_prob),
         "tn": int(tn), "fp": int(fp), "fn": int(fn), "tp": int(tp),
     }
+
+def find_files(name):
+    """Search the Kaggle input folder and this run's own output folder (cache, saved weights)."""
+    import glob
+    hits = []
+    for base in ("/kaggle/input", str(OUT)):
+        hits += glob.glob(f"{base}/**/{name}", recursive=True)
+    return hits
