@@ -240,7 +240,12 @@ chosen on the validation split.
 classifier) of the seed-0 ArogyaNet was computed for the 852 validation images, reduced to two
 dimensions with PCA and t-SNE (perplexity 30), and plotted by true class and by correct/incorrect at
 the chosen threshold (0.416). k-means with k = 2 was run on the full 256-dimensional embeddings.
-[Describe fig08: how the classes separate in PCA and t-SNE, and where the incorrect points lie.]
+
+**Embedding plots (fig08).** In both projections the classes lie along one continuous curved band rather than two separated
+clouds. In PCA, NORMAL images occupy the left arm and PNEUMONIA the right arm of a V; in t-SNE, NORMAL fills one end of a
+horseshoe and PNEUMONIA the rest. The classes overlap at the junction, and the 29 incorrect predictions concentrate there,
+with a few further along the PNEUMONIA side; almost none lie in the interior of either class. Two NORMAL images lie far from
+the rest in PCA and are classified correctly.
 
 **k-means against the labels.**
 
@@ -261,6 +266,13 @@ cluster: 7.5% (18 of 239) against 1.8% (11 of 613), and that cluster also holds 
   <img src="../figures/fig09_errors.png" alt="error table" width="70%">
   <br>
   <em>Figure 9: error table.</em>
+
+  - *Appearance (fig09:) (the six most confident false alarms and the six lowest-probability misses, i.e. worst cases, not a
+  random sample).* The false alarms look unremarkable to a non-specialist; they differ from typical films in positioning and
+  exposure (one is rotated with the arm raised, two are bright or hazy) and two carry the same text mark at the lower right,
+  suggesting a shared source. Of the six misses, one shows midline surgical wires and one shows monitoring leads, a tube and a
+  device over the chest; the other four look normal at this resolution, consistent with subtle disease or a label that the
+  image alone cannot support. We have not had these images reviewed by a clinician, so no conclusion about label noise is drawn.
   
   False alarms have a median area of 1.36 M pixels against
   2.36 M for correctly classified healthy children; missed pneumonia cases have 1.65 M against
