@@ -32,8 +32,7 @@ Evaluated once on 852 locked images (238 healthy, 614 sick):
 **At the camp (about 1 sick child per 9 healthy), per 1,000 children:** about 98 of 100 sick children are
 flagged and 1.6 missed; about 83 healthy children are flagged too, so only **54% of flagged children are
 actually sick**. Cross-validation and the validation split agree (specificity 91% to 93%).
-The tool also says "low confidence, refer to a clinician" for probabilities between 0.42 and 0.90 and
-refuses non-X-ray images [results of the dog and blank tests].
+The tool also says "low confidence, refer to a clinician" for probabilities between 0.42 and 0.90 and refuses non-X-ray images: it refused blank, noise and colour images and a greyscale dog photo; one greyscale cat photo was not refused (it was sent to clinician review), and about 1% of genuine X-rays (13 of 1,000 tested) are refused and need a retake
 
 ## 3. Why "99% accuracy" is the wrong target
 Per 1,000 camp children (100 sick, 900 healthy), a miss costs about 20 times a false alarm:
