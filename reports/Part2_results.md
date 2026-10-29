@@ -377,12 +377,11 @@ whose squared Mahalanobis distance (256-dimensional embedding, Ledoit-Wolf covar
 | Noise (colour), photos of a cat, astronaut, coffee and a dog (colour) | Refused (colour) |
 | Noise (grey), gradient (grey), greyscale astronaut, coffee, dog | Refused by the embedding gate (d² 563 to 2,146) |
 | Greyscale cat photo | **Not refused**: low confidence, p = 0.79, d² = 387 |
-| 300 real chest X-rays from the primary data (mixed splits) | 8 refused (2.7%; 95% interval 1.4% to 5.2%) |
+| 1,000 real chest X-rays from the primary data (fixed sample, mixed splits) | 13 refused (1.3%; exact 95% interval 0.7% to 2.2%) |
 
 The dog photo and the blank image are refused, and no non-X-ray input receives a confident pneumonia or normal result. One of
 12 non-X-ray test images, a greyscale photo of a cat, passed the gate and was sent to clinician review; the cutoff was
-not changed after seeing it. About 1 in 37 genuine X-rays is refused. The gate was not tested on adult radiographs (the
-external data may be used only once); the restriction to children rests on the external false-alarm result (Task 6).
+not changed after seeing it.About 1 in 77 genuine X-rays is refused. Two earlier 300-image samples, drawn in a session-dependent file order, gave 2.7% and 1.0%; the sample is now sorted and fixed. The gate was not tested on adult radiographs (the external data may be used only once); the restriction to children rests on the external false-alarm result (Task 6).
 
 **Speed and size.** [Measured on: Kaggle notebook CPU, 2 logical CPUs; replace or add your laptop.] Time per image in a
 running process, including reading the file, preprocessing, the network and the checks (200 runs after warm-up): median
