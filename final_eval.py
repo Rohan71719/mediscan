@@ -3,7 +3,7 @@ import numpy as np, pandas as pd, torch
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scipy.stats import beta
-from src.utils import OUT, FIG, compute_metrics, get_logger
+from src.utils import OUT, FIG, compute_metrics, get_logger, find_files
 from src.data import Data
 from src.models import ArogyaNet
 from src.train import predict
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     fn_ = d.meta.fname.values[te]
     rows, probs = [], {}
     for s in range(3):
-        h = glob.glob(f"/kaggle/input/**/arogya_full_224_aug_saved_s{s}.pt", recursive=True)
+        h = find_files(f"arogya_full_224_aug_saved_s{s}.pt")
         assert h, "attach the mediscan-models dataset"
         m = ArogyaNet().to(d.device); m.load_state_dict(torch.load(h[0], map_location=d.device)); m.eval()
         probs[s] = torch.sigmoid(predict(m, d, te)).cpu().numpy()
