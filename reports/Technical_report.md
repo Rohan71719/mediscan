@@ -121,7 +121,7 @@ The cost curve is flat from 0.3 to 0.55, so 0.416 is not distinguishable from 0.
 test and not changed. The best threshold depends strongly on assumptions (0.17 to 0.89 over prevalence 5 to 20% and cost
 ratio 10 to 40) [Figure 3: fig06, ROC, PR and cost curves with the chosen point].
 
-*Table 6 (threshold 0.416; test: seed 0, bootstrap intervals; CV: mean ± SD over folds).*
+*Table 6 (The 95% interval of the test specificity (0.863 to 0.941) contains both the validation (0.925) and the cross-validation (0.931) values).*
 
 | Metric | 5-fold CV | Locked test (n = 852) |
 |---|---|---|
