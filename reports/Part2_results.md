@@ -219,6 +219,12 @@ members disagree, and the 15 shared errors (1.8% of the validation set) are a fl
 remove. Averaging three seeds of the same model gains little for the same reason (ResNet18: +0.003 balanced
 accuracy; ArogyaNet: +0.0002).
 
+**Which model ships.** ResNet18 is the strongest single model (balanced accuracy 0.963 against 0.954), but we ship ArogyaNet: its
+file is 1.3 MB against about 45 MB for ResNet18 in float32 (about 22 MB in half precision, almost no room in a 25 MB channel);
+its threshold and cross-validation were completed first; and a 0.9-point validation gap is small against the 3.8-fold rise in
+false alarms under a population shift (Section 7). The external test was run for ArogyaNet only, so we do not know whether
+ResNet18 would hold up better or worse.
+
 **Random Forest and AdaBoost on embeddings.** They do not beat the network's own classifier: balanced
 accuracy 0.953 (Random Forest) and 0.947 (AdaBoost) against 0.954, and ROC-AUC 0.984 and 0.985 against
 0.992. The embedding was trained jointly with the final linear layer, so the classes are already nearly
