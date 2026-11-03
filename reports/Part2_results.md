@@ -396,7 +396,4 @@ The dog photo and the blank image are refused, and no non-X-ray input receives a
 not changed after seeing it.About 1 in 77 genuine X-rays is refused. Two earlier 300-image samples, drawn in a session-dependent file order, gave 2.7% and 1.0%; the sample is now sorted and fixed. The gate was not tested on adult radiographs (the external data may be used only once); the restriction to children rests on the external false-alarm result (Task 6).
 
 **Speed and size.** [Measured on: Kaggle notebook CPU, 2 logical CPUs; replace or add your laptop.] Time per image in a
-running process, including reading the file, preprocessing, the network and the checks (200 runs after warm-up): median
-21.9 ms, 95th percentile 23.8 ms, maximum 27.8 ms with one thread (limit 200 ms); more threads do not help. Model files:
-1.27 MB network, 0.26 MB gate statistics, 1.54 MB in total (limit 25 MB). [Add the cold-start time of `python predict.py`
-measured on your laptop.]
+running process, including reading the file, preprocessing, the network and the checks (200 runs after warm-up):median 18.5 to 22.9 ms, 95th percentile 21.8 to 25.0 ms, worst single call 49.8 ms (200 runs after warm-up; 2 logical CPUs, two sessions, one to four threads; limit 200 ms; includes reading and preprocessing but not start-up of a fresh process)
