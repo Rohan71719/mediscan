@@ -53,7 +53,7 @@ specificity of at least 90%, and expected cost per 1,000 children, all measured 
 paediatric images from an independent hospital at the camp's prevalence.
 
 ## 4. Speed and size 
-Model file 1.27 MB (1.54 MB with the safety checks), limit 25 MB. CPU time per image on a 2-logical-CPU environment: median 21.5 to 21.9 ms, 95th percentile 23.8 to 23.9 ms, limit 200 ms.
+Model file 1.27 MB (1.54 MB with the safety checks), limit 25 MB. CPU time per image on a 2-logical-CPU environment: median 18.5 to 22.9 ms, 95th percentile 21.8 to 25.0 ms, worst single call 49.8 ms (200 runs after warm-up; 2 logical CPUs, two sessions, one to four threads; limit 200 ms; includes reading and preprocessing but not start-up of a fresh process)
 
 
 ## 5. What it must not be used for
