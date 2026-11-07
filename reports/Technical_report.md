@@ -167,18 +167,14 @@ in at least one, a floor that averaging cannot lower. We keep a single ArogyaNet
 ROC-AUC, is below the 0.002 margin).
 
 **Feature space** 
-[Figure 4b: fig08]. In both projections the classes lie along one continuous curved band (V-shaped in PCA, a horseshoe in t-SNE), with
-NORMAL at one end, PNEUMONIA at the other and an overlap zone between; the 29 incorrect predictions concentrate in that zone.
-k-means (k = 2) on the embeddings matches the labels with purity 0.960 (a clustering that ignores the data scores 0.734),
-adjusted Rand index 0.840 and NMI 0.726; the network was trained on these labels, so this shows that the last layer
-separates the classes, not that they cluster naturally. Errors at the chosen threshold (18 false alarms, 11 misses) fall mostly in
-the smaller cluster (7.5% vs 1.8%). Each error type has an image size typical of the opposite class (false alarms 1.36 M pixels
-vs 2.36 M for correct normals; misses 1.65 M vs 0.97 M for correct pneumonia), consistent with the shortcut of Section 3;
-67% and 73% of errors have probabilities between 0.1 and 0.9 against 9% and 6% of correct predictions.  
+The errors' median image sizes lie between the two classes' typical sizes, shifted toward the opposite class: false alarms 1.36 M
+pixels (correct normals 2.36 M, correct pneumonia 0.97 M) and misses 1.65 M (correct pneumonia 0.97 M, correct normals 2.36 M).
+With 18 and 11 images this is descriptive only, but it is consistent with the shortcut of Section 3.
 
-[fig09]: The 12 most confident errors are atypical films rather than random: among the six lowest-probability misses, one has midline
-surgical wires and one has monitoring leads, a tube and a device over the chest; the confident false alarms include a rotated
-film, bright or hazy exposures and two images sharing the same text mark.
+[fig09]: The 12 most extreme errors (six confident false alarms, six lowest-probability misses; worst cases, not a random
+sample, and not reviewed by a clinician), two misses show hardware (midline surgical wires; monitoring leads, a tube and a device
+over the chest) and the other misses look normal at this resolution; the false alarms look unremarkable apart from positioning and
+exposure (one rotated film, two bright or hazy ones) and two images that carry the same text mark.
 
 
 
