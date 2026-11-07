@@ -88,7 +88,7 @@ and the validation split used for both the search and the early stopping.
 
 **Overfitting curves (seed 0, 30 epochs, no early stopping; figure `fig07`).**
 
-| Run | Epoch of lowest val loss | Val loss at best | Val loss at epoch 30 | Train loss at best → at 30 | Epochs saved by early stopping |
+| Run |(epochs counted from 1)Epoch of lowest val loss | Val loss at best | Val loss at epoch 30 | Train loss at best → at 30 | Epochs saved by early stopping |
 |---|---|---|---|---|---|
 | Unregularised (no dropout, no weight decay, no augmentation) | 4 | 0.171 | 0.240 | 0.078 → 0.0005 | 26 |
 | Regularised, default | 19 | 0.094 | 0.104 | 0.080 → 0.059 | 11 |
