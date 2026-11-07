@@ -361,8 +361,8 @@ this is not clearly a good trade, its internal validation cost is worse (119 aga
 and the false-alarm rate remains 31% to 35%. We therefore do not adopt it: the shipped model is the default
 ArogyaNet. Raising the threshold alone does not repair a population shift either.
 
-**Limits.** No independent positives, so no external recall; the independent images are normals from other
-sources (predominantly adult patients); one fix was tried; the same-threshold diagnostic was added after seeing
+**Limits.** `external_eval.py` was run twice: the first run stopped at a bug in the pixel-statistics code after all metrics had been printed;
+the rerun (same models, thresholds and cutoff) reproduced them exactly.No independent positives, so no external recall; the independent images are normals from other sources (predominantly adult patients); one fix was tried; the same-threshold diagnostic was added after seeing
 the main result and is labelled post-hoc; the duplicate screen uses thumbnail correlation (stable across cutoffs
 0.97 to 0.99).
 
