@@ -363,7 +363,7 @@ brightness and contrast jitter ±10% (both at 224×224). No other ablations were
 
 **Results (validation set, mean ± SD over 3 seeds).**
 
-| Setting | Balanced acc. | Specificity | Recall | ROC-AUC | PR-AUC | Best epochs |
+| Setting | Balanced acc. | Specificity | Recall | ROC-AUC | PR-AUC | Best epochs(epochs counted from 0, as in the CSV) |
 |---|---|---|---|---|---|---|
 | 224, augmentation (reference) | 0.954 ± 0.004 | 0.928 ± 0.005 | 0.980 ± 0.005 | 0.9919 ± 0.0009 | 0.9969 ± 0.0004 | 18, 24, 29 |
 | 96, augmentation | 0.945 ± 0.004 | 0.918 ± 0.007 | 0.972 ± 0.005 | 0.9900 ± 0.0030 | 0.9962 ± 0.0013 | 6, 8, 27 |
