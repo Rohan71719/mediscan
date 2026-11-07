@@ -142,7 +142,7 @@ costs 10, while reaching 99% would need specificity above 99%.
 
 ## 6. Tuning, ensembles, feature space (tasks 3 to 5; `tune.py`, `ensemble.py`, `features.py`)
 **Tuning.** Random search, 20 trials, over learning rate (3e-4 to 5e-3), batch size (32, 64, 128), dropout (0 to 0.5) and
-weight decay (1e-6 to 1e-2); one seed, 96 px, ≤ 20 epochs, about 9 minutes. The best trial retrained at 224 px gave ROC-AUC
+weight decay (1e-6 to 1e-2); one seed, 96 px, ≤ 20 epochs(epochs counted from 1), about 9 minutes. The best trial retrained at 224 px gave ROC-AUC
 0.9929 ± 0.0005 against 0.9919 ± 0.0009 for the default, below the margin of 0.002 fixed in advance, so the default is kept.
 Learning rates ≥ 1.5e-3 all reached ROC-AUC ≥ 0.989; the two lowest rates underfit. **Overfitting** [Figure 4a: fig07]:
 without regularisation validation loss is lowest at epoch 4 (0.171) and rises to 0.240 by epoch 30 while training loss
